@@ -1,0 +1,23 @@
+Texture 	TextureRun 			assets/sprites/mario.png 	50 	0 	104 	16 	0
+Texture 	TextureIdle 		assets/sprites/mario.png 	16 	0 	14 		16 	0
+Texture 	TextureJump 		assets/sprites/mario.png 	0 	0 	17 		16 	0
+Texture 	TextureHill 		assets/sprites/hill.png 	0 	0 	400 	175 0
+Texture 	TexturePipeBig 		assets/sprites/misc.png 	0 	0 	96 		144 0
+Texture 	TexturePipeSmall 	assets/sprites/misc.png 	96 	49 	96 		96 	0
+Texture 	TextureBlock		assets/sprites/misc.png 	96 	0 	48 		48 	0
+Texture 	TextureBall		 	assets/sprites/misc.png 	145	0 	24 		24 	0
+Texture 	TextureCloudSmall 	assets/sprites/misc.png 	200	0 	96 		70 	0
+Texture 	TextureCloudBig 	assets/sprites/misc.png 	192	72 	193 	72 	0
+Texture 	TextureFloor	 	assets/sprites/floor.png 	0	0 	1280	64 	0
+Animation 	P_IDLE 				TextureIdle 				1 	1
+Animation 	P_RUN 				TextureRun 					3 	5
+Animation 	P_JUMP 				TextureJump 				1 	1
+Animation 	Hill 				TextureHill 				1 	1
+Animation 	PipeBig				TexturePipeBig 				1 	1
+Animation 	PipeSmall			TexturePipeSmall			1 	1
+Animation 	Block 				TextureBlock				1 	1
+Animation 	Ball 				TextureBall					1 	1
+Animation 	CloudSmall			TextureCloudSmall 			1 	1
+Animation 	CloudBig 			TextureCloudBig				1 	1
+Animation 	Floor 				TextureFloor				1 	1
+Font 		Arial 				assets/fonts/cour.ttf

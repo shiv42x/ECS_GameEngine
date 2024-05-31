@@ -1,0 +1,9 @@
+Dec		Hill		0	1
+Dec		CloudBig	14	9
+Dec		CloudSmall	8	7
+Tile	PipeBig		12  1
+Tile	PipeSmall	16	1
+Tile	Floor		0	0
+Tile	Block		7	3
+Tile	Block		8	4
+Player	P_IDLE		4	3	40	40	5	-20	15	0.75	Ball
