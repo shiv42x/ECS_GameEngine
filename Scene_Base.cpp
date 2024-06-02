@@ -54,6 +54,8 @@ void SceneBase::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::A, "LEFT");
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::D, "RIGHT");
+	registerAction(sf::Keyboard::F, "SHOOT");
+
 
 	// ui actions
 	registerAction(sf::Keyboard::L, "TOGGLE_GRID");
@@ -156,6 +158,15 @@ void SceneBase::sMovement()
 		e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity;
 	}
 
+	for (auto& e : m_entityManager.getEntities("Bullet"))
+	{
+		e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity;
+		e->getComponent<CTransform>().velocity.y = std::min(e->getComponent<CTransform>().velocity.y, m_playerConfig.MAX_SPEED);
+
+		e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
+		e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity;
+	}
+
 	// make player face correct direction
 	if (playerVelocity.x < 0)
 	{
@@ -174,12 +185,11 @@ void SceneBase::sCollision()
 	{
 		Vec2 overlap = Physics::GetOverlap(m_player, e);
 		Vec2 prevOverlap = Physics::GetPreviousOverlap(m_player, e);
-		auto& playerVelo = m_player->getComponent<CTransform>().velocity;
+		auto& playerVelocity = m_player->getComponent<CTransform>().velocity;
 		auto& playerPos = m_player->getComponent<CTransform>().pos;
 		auto& playerPrevPos = m_player->getComponent<CTransform>().prevPos;
 		auto& entityPos = e->getComponent<CTransform>().pos;
 
-		auto& playerVelocity = m_player->getComponent<CTransform>().velocity;
 		auto& playerState = m_player->getComponent<CState>().state;
 
 		if (overlap.x > 0 && overlap.y > 0)
@@ -235,6 +245,58 @@ void SceneBase::sCollision()
 			playerState = "P_IDLE";
 		}
 	}
+
+	for (auto& bullet : m_entityManager.getEntities("Bullet"))
+	{
+		for (auto& tile : m_entityManager.getEntities("Tile"))
+		{
+			Vec2 overlap = Physics::GetOverlap(bullet, tile);
+			Vec2 prevOverlap = Physics::GetPreviousOverlap(bullet, tile);
+			auto& bulletVelo = bullet->getComponent<CTransform>().velocity;
+			auto& bulletPos = bullet->getComponent<CTransform>().pos;
+			auto& bulletPrevPos = bullet->getComponent<CTransform>().prevPos;
+			auto& tilePos = tile->getComponent<CTransform>().pos;
+
+			if (overlap.x > 0 && overlap.y > 0)
+			{
+				// horizontal collision if prevOverlap.y > 0
+				if (prevOverlap.y > 0)
+				{
+					// if moving right, push to left and vice versa
+					// collision when player moved right
+					if (bulletPrevPos.x < tilePos.x)
+					{
+						bulletPos.x -= overlap.x;
+					}
+					else if (bulletPrevPos.x > tilePos.x)
+					{
+						bulletPrevPos.x += overlap.x;
+					}
+					// simulate friction
+					bullet->getComponent<CTransform>().velocity.x = -bullet->getComponent<CTransform>().velocity.x * 0.9f;
+
+				}
+
+				if (prevOverlap.x > 0)
+				{
+					if (bulletPrevPos.y > tilePos.y)
+					{
+						bulletPos.y += overlap.y;
+						bullet->getComponent<CTransform>().velocity.y = 0.0f;
+					}
+					else if (bulletPrevPos.y < tilePos.y)
+					{
+						bulletPos.y -= overlap.y;
+						bullet->getComponent<CTransform>().velocity.y = -bullet->getComponent<CTransform>().velocity.y * 0.5f;
+					}
+					// simulate friction
+					bullet->getComponent<CTransform>().velocity.x = bullet->getComponent<CTransform>().velocity.x * 0.75f;
+
+				}
+			}
+		}
+	}
+
 }
 
 void SceneBase::sRender()
@@ -320,7 +382,8 @@ void SceneBase::sDoAction(const Action& action)
 		else if (action.name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
 		else if (action.name() == "PAUSE") { togglePause(); }
 		else if (action.name() == "QUIT") { onEnd(); }
-		
+		else if (action.name() == "SHOOT") { spawnBullet(m_player); }
+
 		// player actions
 		else if (action.name() == "JUMP") 
 		{
@@ -365,6 +428,38 @@ Vec2 SceneBase::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity>
 	float x = (gridX * m_gridSize.x) + (entity->getComponent<CAnimation>().animation.getSize().x / 2);
 	float y = m_game->getWinHeight() - (gridY * m_gridSize.y) - (entity->getComponent<CAnimation>().animation.getSize().y / 2);
 	return Vec2(x, y);
+}
+
+void SceneBase::spawnBullet(std::shared_ptr<Entity> entity)
+{
+	// bullet needs to spawn with correct velocity
+	//		if entity scale is (-) then, it is facing right
+	//		else left	
+	// bullet will have gravity component
+	
+	// add components
+	auto bullet = m_entityManager.addEntity("Bullet");
+	bullet->addComponent<CTransform>();
+	bullet->addComponent<CGravity>(m_playerConfig.GRAVITY);
+	bullet->addComponent<CAnimation>(
+		m_game->getAssetManager().getAnimation("Ball"), false
+	);
+	bullet->addComponent<CBoundingBox>(
+		m_game->getAssetManager().getAnimation("Ball").getSize()
+	);
+
+	// set components
+	bullet->getComponent<CTransform>().pos = entity->getComponent<CTransform>().pos;
+	bullet->getComponent<CTransform>().prevPos = bullet->getComponent<CTransform>().pos;
+	
+	if (entity->getComponent<CTransform>().scale.x < 0)
+	{
+		bullet->getComponent<CTransform>().velocity = { 10.0f, 10.0f };
+	}
+	else
+	{
+		bullet->getComponent<CTransform>().velocity = { -10.0f, 10.0f };
+	}
 }
 
 void SceneBase::onEnd()
