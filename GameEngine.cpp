@@ -2,6 +2,7 @@
 #include "Scene_Base.h"
 #include "AssetManager.h"
 #include <iostream>
+#include <chrono>
 
 GameEngine::GameEngine()
 {
@@ -18,9 +19,23 @@ void GameEngine::init()
 
 void GameEngine::run()
 {
+	std::chrono::high_resolution_clock::time_point start;
+	std::chrono::high_resolution_clock::time_point end;
+	float fps;
+	sf::Text fps_counter;
+	sf::Font cour;
+	cour.loadFromFile("assets/fonts/cour.ttf");
+	fps_counter.setFont(cour);
+	fps_counter.setCharacterSize(20);
 	while (isRunning())
 	{
+		start = std::chrono::high_resolution_clock::now();
 		update();
+		end = std::chrono::high_resolution_clock::now();
+		fps = (float)1e9 / (float)std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+		std::string fps_str = std::to_string((float)fps);
+		fps_counter.setString(fps_str);
+		m_fps = fps_counter;
 	}
 }
 
@@ -28,10 +43,10 @@ void GameEngine::run()
 void GameEngine::update()
 {
 	if (!isRunning()) { return; }
-	
 	m_window.clear();
 	sUserInput();
 	currentScene()->update();
+	m_window.draw(m_fps);
 	m_window.display();
 }
 
