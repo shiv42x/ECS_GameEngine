@@ -39,9 +39,9 @@ private:
 
 	void initPlayer();
 	void spawnBullet(std::shared_ptr<Entity> entity);
+	void spawnCrazyBullets(std::shared_ptr<Entity> entity);
 	void setAnimation(std::shared_ptr<Entity> entity,
 		const std::string& animationName, bool repeat);
-
 public:
 	SceneBase(GameEngine* game, const std::string& levelPath);
 };

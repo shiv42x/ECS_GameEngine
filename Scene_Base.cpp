@@ -55,6 +55,7 @@ void SceneBase::init(const std::string& levelPath)
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::D, "RIGHT");
 	registerAction(sf::Keyboard::F, "SHOOT");
+	registerAction(sf::Keyboard::G, "SHOOT_CRAZY");
 
 
 	// ui actions
@@ -383,6 +384,7 @@ void SceneBase::sDoAction(const Action& action)
 		else if (action.name() == "PAUSE") { togglePause(); }
 		else if (action.name() == "QUIT") { onEnd(); }
 		else if (action.name() == "SHOOT") { spawnBullet(m_player); }
+		else if (action.name() == "SHOOT_CRAZY") { spawnCrazyBullets(m_player); }
 
 		// player actions
 		else if (action.name() == "JUMP") 
@@ -459,6 +461,43 @@ void SceneBase::spawnBullet(std::shared_ptr<Entity> entity)
 	else
 	{
 		bullet->getComponent<CTransform>().velocity = { -10.0f, 10.0f };
+	}
+}
+
+void SceneBase::spawnCrazyBullets(std::shared_ptr<Entity> entity)
+{
+	// add components
+	for (int i = 0; i <= 50; i++)
+	{
+		auto bullet = m_entityManager.addEntity("Bullet");
+		bullet->addComponent<CTransform>();
+		bullet->addComponent<CAnimation>(
+			m_game->getAssetManager().getAnimation(m_playerConfig.SHOOT_ANIM), false
+		);
+		bullet->addComponent<CBoundingBox>(
+			bullet->getComponent<CAnimation>().animation.getSize()
+		);
+
+		// set components
+		bullet->getComponent<CTransform>().pos = entity->getComponent<CTransform>().pos;
+		bullet->getComponent<CTransform>().prevPos = bullet->getComponent<CTransform>().pos;
+
+		// hack
+		float angle = (i - 5) * 10.0f; // Calculate angle for each bullet
+
+		float speed = 10.0f;
+		float radians = angle * 3.14159f / 180.0f; // Convert degrees to radians
+		float vx = speed * cos(radians);
+		float vy = speed * sin(radians);
+
+		if (entity->getComponent<CTransform>().scale.x < 0)
+		{
+			bullet->getComponent<CTransform>().velocity = { vx, vy };
+		}
+		else
+		{
+			bullet->getComponent<CTransform>().velocity = { -vx, vy };
+		}
 	}
 }
 
