@@ -96,15 +96,16 @@ void SceneBase::sAnimation()
 {
 	// only state changes of player are handled
 	const auto& playerState = m_player.getComponent<CState>().state;
-	if (playerState == "P_IDLE" && m_player.getComponent<CAnimation>().animation.getName() != "P_IDLE")
+	auto& playerAnimName = m_player.getComponent<CAnimation>().animation.getName();
+	if (playerState == "P_IDLE" && playerAnimName != "P_IDLE")
 	{
 		m_player.addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_IDLE"), false);
 	}
-	else if (playerState == "P_RUN" && m_player.getComponent<CAnimation>().animation.getName() != "P_RUN")
+	else if (playerState == "P_RUN" && playerAnimName != "P_RUN")
 	{
 		m_player.addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_RUN"), false);
 	}
-	else if (playerState == "P_JUMP" && m_player.getComponent<CAnimation>().animation.getName() != "P_JUMP")
+	else if (playerState == "P_JUMP" && playerAnimName != "P_JUMP")
 	{
 		m_player.addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_JUMP"), false);
 	}
@@ -120,7 +121,8 @@ void SceneBase::sAnimation()
 
 void SceneBase::sMovement()
 {
-	Vec2& playerVelocity = m_player.getComponent<CTransform>().velocity;
+	auto& playerTransform = m_player.getComponent<CTransform>();
+	Vec2& playerVelocity = playerTransform.velocity;
 	auto& input = m_player.getComponent<CInput>();
 	auto& playerState = m_player.getComponent<CState>().state;
 
@@ -149,33 +151,33 @@ void SceneBase::sMovement()
 		playerVelocity.x = 0.0f;
 	}
 
-	// only do player for now
-	for (auto& e : m_entityManager.getEntities("Player"))
-	{
-		playerVelocity.y += m_player.getComponent<CGravity>().gravity;
-		playerVelocity.y = std::min(playerVelocity.y, m_playerConfig.MAX_SPEED);
+	// do player
+	playerVelocity.y += m_player.getComponent<CGravity>().gravity;
+	playerVelocity.y = std::min(playerVelocity.y, m_playerConfig.MAX_SPEED);
 
-		e.getComponent<CTransform>().prevPos = e.getComponent<CTransform>().pos;
-		e.getComponent<CTransform>().pos += e.getComponent<CTransform>().velocity;
-	}
+
+	playerTransform.prevPos = playerTransform.pos;
+	playerTransform.pos += playerTransform.velocity;
+	
 
 	for (auto& e : m_entityManager.getEntities("Bullet"))
 	{
-		e.getComponent<CTransform>().velocity.y += e.getComponent<CGravity>().gravity;
-		e.getComponent<CTransform>().velocity.y = std::min(e.getComponent<CTransform>().velocity.y, m_playerConfig.MAX_SPEED);
+		auto& bulletTransform = e.getComponent<CTransform>();
+		bulletTransform.velocity.y += e.getComponent<CGravity>().gravity;
+		bulletTransform.velocity.y = std::min(bulletTransform.velocity.y, m_playerConfig.MAX_SPEED);
 
-		e.getComponent<CTransform>().prevPos = e.getComponent<CTransform>().pos;
-		e.getComponent<CTransform>().pos += e.getComponent<CTransform>().velocity;
+		bulletTransform.prevPos = bulletTransform.pos;
+		bulletTransform.pos += bulletTransform.velocity;
 	}
 
 	// make player face correct direction
 	if (playerVelocity.x < 0)
 	{
-		m_player.getComponent<CTransform>().scale = { 2.5f, 2.5f };
+		playerTransform.scale = { 2.5f, 2.5f };
 	}
 	else if (playerVelocity.x > 0)
 	{
-		m_player.getComponent<CTransform>().scale = { -2.5f, 2.5f };
+		playerTransform.scale = { -2.5f, 2.5f };
 	}
 }
 
@@ -188,10 +190,10 @@ void SceneBase::sCollision()
 		Vec2 prevOverlap = Physics::GetPreviousOverlap(m_player, e);
 
 		auto& pTransform = m_player.getComponent<CTransform>();
+		auto& playerState = m_player.getComponent<CState>().state;
 		auto& playerVelocity = pTransform.velocity;
 		auto& playerPos = pTransform.pos;
 		auto& playerPrevPos = pTransform.prevPos;
-		auto& playerState = m_player.getComponent<CState>().state;
 
 
 		auto& entityPos = e.getComponent<CTransform>().pos;
@@ -252,8 +254,68 @@ void SceneBase::sCollision()
 	}
 
 	// physics for bullet bounce on collision
+	//for (auto& bullet : m_entityManager.getEntities("Bullet"))
+	//{
+	//	for (auto& tile : m_entityManager.getEntities("Tile"))
+	//	{
+	//		Vec2 overlap = Physics::GetOverlap(bullet, tile);
+	//		Vec2 prevOverlap = Physics::GetPreviousOverlap(bullet, tile);
+	//		
+	//		auto& bulletTransform = bullet.getComponent<CTransform>();
+	//		auto& bulletVelo = bulletTransform.velocity;
+	//		auto& bulletPos = bulletTransform.pos;
+	//		auto& bulletPrevPos = bulletTransform.prevPos;
+	//		auto& tilePos = tile.getComponent<CTransform>().pos;
+
+	//		if (overlap.x > 0 && overlap.y > 0)
+	//		{
+	//			// horizontal collision if prevOverlap.y > 0
+	//			if (prevOverlap.y > 0)
+	//			{
+	//				// if moving right, push to left and vice versa
+	//				// collision when player moved right
+	//				if (bulletPrevPos.x < tilePos.x)
+	//				{
+	//					bulletPos.x -= overlap.x;
+	//				}
+	//				else if (bulletPrevPos.x > tilePos.x)
+	//				{
+	//					bulletPrevPos.x += overlap.x;
+	//				}
+	//				// simulate friction
+	//				bulletTransform.velocity.x = -bulletTransform.velocity.x * 0.9f;
+
+	//			}
+
+	//			if (prevOverlap.x > 0)
+	//			{
+	//				if (bulletPrevPos.y > tilePos.y)
+	//				{
+	//					bulletPos.y += overlap.y;
+	//					bulletTransform.velocity.y = 0.0f;
+	//				}
+	//				else if (bulletPrevPos.y < tilePos.y)
+	//				{
+	//					bulletPos.y -= overlap.y;
+	//					bulletTransform.velocity.y = -bulletTransform.velocity.y * 0.5f;
+	//				}
+	//				// simulate friction
+	//				bulletTransform.velocity.x = bulletTransform.velocity.x * 0.75f;
+
+	//			}
+	//		}
+	//	}
+	//}
+
+	 //physics for destroy bullet on collision or off screen
 	for (auto& bullet : m_entityManager.getEntities("Bullet"))
 	{
+		if (bullet.getComponent<CTransform>().pos.y > m_game->getWinHeight() + 50.0f ||
+			bullet.getComponent<CTransform>().pos.x > m_game->getWinWidth() + 50.0f)
+		{
+			bullet.destroy();
+			continue;
+		}
 		for (auto& tile : m_entityManager.getEntities("Tile"))
 		{
 			Vec2 overlap = Physics::GetOverlap(bullet, tile);
@@ -266,68 +328,10 @@ void SceneBase::sCollision()
 			if (overlap.x > 0 && overlap.y > 0)
 			{
 				// horizontal collision if prevOverlap.y > 0
-				if (prevOverlap.y > 0)
-				{
-					// if moving right, push to left and vice versa
-					// collision when player moved right
-					if (bulletPrevPos.x < tilePos.x)
-					{
-						bulletPos.x -= overlap.x;
-					}
-					else if (bulletPrevPos.x > tilePos.x)
-					{
-						bulletPrevPos.x += overlap.x;
-					}
-					// simulate friction
-					bullet.getComponent<CTransform>().velocity.x = -bullet.getComponent<CTransform>().velocity.x * 0.9f;
-
-				}
-
-				if (prevOverlap.x > 0)
-				{
-					if (bulletPrevPos.y > tilePos.y)
-					{
-						bulletPos.y += overlap.y;
-						bullet.getComponent<CTransform>().velocity.y = 0.0f;
-					}
-					else if (bulletPrevPos.y < tilePos.y)
-					{
-						bulletPos.y -= overlap.y;
-						bullet.getComponent<CTransform>().velocity.y = -bullet.getComponent<CTransform>().velocity.y * 0.5f;
-					}
-					// simulate friction
-					bullet.getComponent<CTransform>().velocity.x = bullet.getComponent<CTransform>().velocity.x * 0.75f;
-
-				}
+				bullet.destroy();
 			}
 		}
 	}
-
-	// physics for destroy bullet on collision or off screen
-	//for (auto& bullet : m_entityManager.getEntities("Bullet"))
-	//{
-	//	if (bullet.getComponent<CTransform>().pos.y > m_game->getWinHeight() + 50.0f ||
-	//		bullet.getComponent<CTransform>().pos.x > m_game->getWinWidth() + 50.0f)
-	//	{
-	//		bullet.destroy();
-	//		continue;
-	//	}
-	//	for (auto& tile : m_entityManager.getEntities("Tile"))
-	//	{
-	//		Vec2 overlap = Physics::GetOverlap(bullet, tile);
-	//		Vec2 prevOverlap = Physics::GetPreviousOverlap(bullet, tile);
-	//		auto& bulletVelo = bullet.getComponent<CTransform>().velocity;
-	//		auto& bulletPos = bullet.getComponent<CTransform>().pos;
-	//		auto& bulletPrevPos = bullet.getComponent<CTransform>().prevPos;
-	//		auto& tilePos = tile.getComponent<CTransform>().pos;
-
-	//		if (overlap.x > 0 && overlap.y > 0)
-	//		{
-	//			// horizontal collision if prevOverlap.y > 0
-	//			bullet.destroy();
-	//		}
-	//	}
-	//}
 }
 
 void SceneBase::sRender()
