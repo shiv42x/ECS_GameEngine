@@ -186,7 +186,7 @@ void SceneBase::sCollision()
 	{
 		Vec2 overlap = Physics::GetOverlap(m_player, e);
 		Vec2 prevOverlap = Physics::GetPreviousOverlap(m_player, e);
-	
+
 		auto& pTransform = m_player.getComponent<CTransform>();
 		auto& playerVelocity = pTransform.velocity;
 		auto& playerPos = pTransform.pos;
@@ -252,66 +252,8 @@ void SceneBase::sCollision()
 	}
 
 	// physics for bullet bounce on collision
-	//for (auto& bullet : m_entityManager.getEntities("Bullet"))
-	//{
-	//	for (auto& tile : m_entityManager.getEntities("Tile"))
-	//	{
-	//		Vec2 overlap = Physics::GetOverlap(bullet, tile);
-	//		Vec2 prevOverlap = Physics::GetPreviousOverlap(bullet, tile);
-	//		auto& bulletVelo = bullet.getComponent<CTransform>().velocity;
-	//		auto& bulletPos = bullet.getComponent<CTransform>().pos;
-	//		auto& bulletPrevPos = bullet.getComponent<CTransform>().prevPos;
-	//		auto& tilePos = tile.getComponent<CTransform>().pos;
-
-	//		if (overlap.x > 0 && overlap.y > 0)
-	//		{
-	//			// horizontal collision if prevOverlap.y > 0
-	//			if (prevOverlap.y > 0)
-	//			{
-	//				// if moving right, push to left and vice versa
-	//				// collision when player moved right
-	//				if (bulletPrevPos.x < tilePos.x)
-	//				{
-	//					bulletPos.x -= overlap.x;
-	//				}
-	//				else if (bulletPrevPos.x > tilePos.x)
-	//				{
-	//					bulletPrevPos.x += overlap.x;
-	//				}
-	//				// simulate friction
-	//				bullet.getComponent<CTransform>().velocity.x = -bullet.getComponent<CTransform>().velocity.x * 0.9f;
-
-	//			}
-
-	//			if (prevOverlap.x > 0)
-	//			{
-	//				if (bulletPrevPos.y > tilePos.y)
-	//				{
-	//					bulletPos.y += overlap.y;
-	//					bullet.getComponent<CTransform>().velocity.y = 0.0f;
-	//				}
-	//				else if (bulletPrevPos.y < tilePos.y)
-	//				{
-	//					bulletPos.y -= overlap.y;
-	//					bullet.getComponent<CTransform>().velocity.y = -bullet.getComponent<CTransform>().velocity.y * 0.5f;
-	//				}
-	//				// simulate friction
-	//				bullet.getComponent<CTransform>().velocity.x = bullet.getComponent<CTransform>().velocity.x * 0.75f;
-
-	//			}
-	//		}
-	//	}
-	//}
-
-	// physics for destroy bullet on collision or off screen
 	for (auto& bullet : m_entityManager.getEntities("Bullet"))
 	{
-		if (bullet.getComponent<CTransform>().pos.y > m_game->getWinHeight() + 50.0f ||
-			bullet.getComponent<CTransform>().pos.x > m_game->getWinWidth() + 50.0f)
-		{
-			bullet.destroy();
-			continue;
-		}
 		for (auto& tile : m_entityManager.getEntities("Tile"))
 		{
 			Vec2 overlap = Physics::GetOverlap(bullet, tile);
@@ -324,12 +266,68 @@ void SceneBase::sCollision()
 			if (overlap.x > 0 && overlap.y > 0)
 			{
 				// horizontal collision if prevOverlap.y > 0
-				bullet.destroy();
+				if (prevOverlap.y > 0)
+				{
+					// if moving right, push to left and vice versa
+					// collision when player moved right
+					if (bulletPrevPos.x < tilePos.x)
+					{
+						bulletPos.x -= overlap.x;
+					}
+					else if (bulletPrevPos.x > tilePos.x)
+					{
+						bulletPrevPos.x += overlap.x;
+					}
+					// simulate friction
+					bullet.getComponent<CTransform>().velocity.x = -bullet.getComponent<CTransform>().velocity.x * 0.9f;
+
+				}
+
+				if (prevOverlap.x > 0)
+				{
+					if (bulletPrevPos.y > tilePos.y)
+					{
+						bulletPos.y += overlap.y;
+						bullet.getComponent<CTransform>().velocity.y = 0.0f;
+					}
+					else if (bulletPrevPos.y < tilePos.y)
+					{
+						bulletPos.y -= overlap.y;
+						bullet.getComponent<CTransform>().velocity.y = -bullet.getComponent<CTransform>().velocity.y * 0.5f;
+					}
+					// simulate friction
+					bullet.getComponent<CTransform>().velocity.x = bullet.getComponent<CTransform>().velocity.x * 0.75f;
+
+				}
 			}
 		}
 	}
 
+	// physics for destroy bullet on collision or off screen
+	//for (auto& bullet : m_entityManager.getEntities("Bullet"))
+	//{
+	//	if (bullet.getComponent<CTransform>().pos.y > m_game->getWinHeight() + 50.0f ||
+	//		bullet.getComponent<CTransform>().pos.x > m_game->getWinWidth() + 50.0f)
+	//	{
+	//		bullet.destroy();
+	//		continue;
+	//	}
+	//	for (auto& tile : m_entityManager.getEntities("Tile"))
+	//	{
+	//		Vec2 overlap = Physics::GetOverlap(bullet, tile);
+	//		Vec2 prevOverlap = Physics::GetPreviousOverlap(bullet, tile);
+	//		auto& bulletVelo = bullet.getComponent<CTransform>().velocity;
+	//		auto& bulletPos = bullet.getComponent<CTransform>().pos;
+	//		auto& bulletPrevPos = bullet.getComponent<CTransform>().prevPos;
+	//		auto& tilePos = tile.getComponent<CTransform>().pos;
 
+	//		if (overlap.x > 0 && overlap.y > 0)
+	//		{
+	//			// horizontal collision if prevOverlap.y > 0
+	//			bullet.destroy();
+	//		}
+	//	}
+	//}
 }
 
 void SceneBase::sRender()
