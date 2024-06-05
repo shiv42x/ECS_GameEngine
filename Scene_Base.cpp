@@ -28,7 +28,7 @@ void SceneBase::init(const std::string& levelPath)
 			fin >> ANIM_NAME >> GRID_X >> GRID_Y >> BBOX_W >> BBOX_H >> SPEED >> JMP_SPEED >> MAX_SPEED >> GRAVITY >> SHOOT_ANIM;
 		
 			// X, Y, BBOX_W, BBOX_H, SPEED, MAX_SPEED, JUMP, GRAVITY
-			m_playerConfig = { GRID_X, GRID_Y, BBOX_W, BBOX_H, SPEED, MAX_SPEED, JMP_SPEED, GRAVITY, ANIM_NAME };
+			m_playerConfig = { GRID_X, GRID_Y, BBOX_W, BBOX_H, SPEED, MAX_SPEED, JMP_SPEED, GRAVITY, SHOOT_ANIM };
 			initPlayer();
 		}
 		else
@@ -38,13 +38,13 @@ void SceneBase::init(const std::string& levelPath)
 			fin >> animName >> X >> Y;
 			auto entity = m_entityManager.addEntity(token);
 			// must give animation first, so gridToMidPixel can determine correct size
-			entity->addComponent<CAnimation>(m_game->getAssetManager().getAnimation(animName), true);
-			entity->addComponent<CTransform>(gridToMidPixel(X, Y, entity));
+			entity.addComponent<CAnimation>(m_game->getAssetManager().getAnimation(animName), true);
+			entity.addComponent<CTransform>(gridToMidPixel(X, Y, entity));
 			
 			// only give tiles collision
 			if (token == "Tile")
 			{
-				entity->addComponent<CBoundingBox>(m_game->getAssetManager().getAnimation(animName).getSize());
+				entity.addComponent<CBoundingBox>(m_game->getAssetManager().getAnimation(animName).getSize());
 			}
 		}
 	}
@@ -83,45 +83,45 @@ void SceneBase::initPlayer()
 {
 	// should read playerConfig struct after reading from file
 	auto entity = m_entityManager.addEntity("Player");
-	entity->addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_IDLE"), true);
-	entity->addComponent<CTransform>(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, entity), Vec2(0.0f, 0.0f), Vec2(-2.5f, 2.5f), 0.0f);
-	entity->addComponent<CState>("P_IDLE");
-	entity->addComponent<CBoundingBox>(Vec2(m_playerConfig.BBOX_W, m_playerConfig.BBOX_H));
-	entity->addComponent<CGravity>(m_playerConfig.GRAVITY);
+	entity.addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_IDLE"), true);
+	entity.addComponent<CTransform>(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, entity), Vec2(0.0f, 0.0f), Vec2(-2.5f, 2.5f), 0.0f);
+	entity.addComponent<CState>("P_IDLE");
+	entity.addComponent<CBoundingBox>(Vec2(m_playerConfig.BBOX_W, m_playerConfig.BBOX_H));
+	entity.addComponent<CGravity>(m_playerConfig.GRAVITY);
 	m_player = entity;
 }
 
 void SceneBase::sAnimation()
 {
 	// only state changes of player are handled
-	const auto& playerState = m_player->getComponent<CState>().state;
-	if (playerState == "P_IDLE" && m_player->getComponent<CAnimation>().animation.getName() != "P_IDLE")
+	const auto& playerState = m_player.getComponent<CState>().state;
+	if (playerState == "P_IDLE" && m_player.getComponent<CAnimation>().animation.getName() != "P_IDLE")
 	{
-		m_player->addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_IDLE"), false);
+		m_player.addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_IDLE"), false);
 	}
-	else if (playerState == "P_RUN" && m_player->getComponent<CAnimation>().animation.getName() != "P_RUN")
+	else if (playerState == "P_RUN" && m_player.getComponent<CAnimation>().animation.getName() != "P_RUN")
 	{
-		m_player->addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_RUN"), false);
+		m_player.addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_RUN"), false);
 	}
-	else if (playerState == "P_JUMP" && m_player->getComponent<CAnimation>().animation.getName() != "P_JUMP")
+	else if (playerState == "P_JUMP" && m_player.getComponent<CAnimation>().animation.getName() != "P_JUMP")
 	{
-		m_player->addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_JUMP"), false);
+		m_player.addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_JUMP"), false);
 	}
 
 	for (auto& e : m_entityManager.getEntities())
 	{
-		if (e->hasComponent<CAnimation>())
+		if (e.hasComponent<CAnimation>())
 		{
-			e->getComponent<CAnimation>().animation.update();
+			e.getComponent<CAnimation>().animation.update();
 		}
 	}
 }
 
 void SceneBase::sMovement()
 {
-	Vec2& playerVelocity = m_player->getComponent<CTransform>().velocity;
-	auto& input = m_player->getComponent<CInput>();
-	auto& playerState = m_player->getComponent<CState>().state;
+	Vec2& playerVelocity = m_player.getComponent<CTransform>().velocity;
+	auto& input = m_player.getComponent<CInput>();
+	auto& playerState = m_player.getComponent<CState>().state;
 
 	// vertical movement
 	if (input.up && input.canJump)
@@ -131,7 +131,7 @@ void SceneBase::sMovement()
 	}
 	if (!input.up && playerVelocity.y <= 0)
 	{
-		playerVelocity.y += m_player->getComponent<CGravity>().gravity / 4;
+		playerVelocity.y += m_player.getComponent<CGravity>().gravity / 4;
 	}
 
 	// horizontal movement
@@ -151,30 +151,30 @@ void SceneBase::sMovement()
 	// only do player for now
 	for (auto& e : m_entityManager.getEntities("Player"))
 	{
-		playerVelocity.y += m_player->getComponent<CGravity>().gravity;
+		playerVelocity.y += m_player.getComponent<CGravity>().gravity;
 		playerVelocity.y = std::min(playerVelocity.y, m_playerConfig.MAX_SPEED);
 
-		e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
-		e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity;
+		e.getComponent<CTransform>().prevPos = e.getComponent<CTransform>().pos;
+		e.getComponent<CTransform>().pos += e.getComponent<CTransform>().velocity;
 	}
 
 	for (auto& e : m_entityManager.getEntities("Bullet"))
 	{
-		e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity;
-		e->getComponent<CTransform>().velocity.y = std::min(e->getComponent<CTransform>().velocity.y, m_playerConfig.MAX_SPEED);
+		e.getComponent<CTransform>().velocity.y += e.getComponent<CGravity>().gravity;
+		e.getComponent<CTransform>().velocity.y = std::min(e.getComponent<CTransform>().velocity.y, m_playerConfig.MAX_SPEED);
 
-		e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
-		e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity;
+		e.getComponent<CTransform>().prevPos = e.getComponent<CTransform>().pos;
+		e.getComponent<CTransform>().pos += e.getComponent<CTransform>().velocity;
 	}
 
 	// make player face correct direction
 	if (playerVelocity.x < 0)
 	{
-		m_player->getComponent<CTransform>().scale = { 2.5f, 2.5f };
+		m_player.getComponent<CTransform>().scale = { 2.5f, 2.5f };
 	}
 	else if (playerVelocity.x > 0)
 	{
-		m_player->getComponent<CTransform>().scale = { -2.5f, 2.5f };
+		m_player.getComponent<CTransform>().scale = { -2.5f, 2.5f };
 	}
 }
 
@@ -185,12 +185,12 @@ void SceneBase::sCollision()
 	{
 		Vec2 overlap = Physics::GetOverlap(m_player, e);
 		Vec2 prevOverlap = Physics::GetPreviousOverlap(m_player, e);
-		auto& playerVelocity = m_player->getComponent<CTransform>().velocity;
-		auto& playerPos = m_player->getComponent<CTransform>().pos;
-		auto& playerPrevPos = m_player->getComponent<CTransform>().prevPos;
-		auto& entityPos = e->getComponent<CTransform>().pos;
+		auto& playerVelocity = m_player.getComponent<CTransform>().velocity;
+		auto& playerPos = m_player.getComponent<CTransform>().pos;
+		auto& playerPrevPos = m_player.getComponent<CTransform>().prevPos;
+		auto& entityPos = e.getComponent<CTransform>().pos;
 
-		auto& playerState = m_player->getComponent<CState>().state;
+		auto& playerState = m_player.getComponent<CState>().state;
 
 		if (overlap.x > 0 && overlap.y > 0)
 		{
@@ -217,14 +217,14 @@ void SceneBase::sCollision()
 				if (playerPrevPos.y > entityPos.y)
 				{
 					playerPos.y += overlap.y;
-					m_player->getComponent<CTransform>().velocity.y = 0.0f;
+					m_player.getComponent<CTransform>().velocity.y = 0.0f;
 				}
 				// collision when player moved down
 				else if (playerPrevPos.y < entityPos.y)
 				{
 					playerPos.y -= overlap.y;
-					m_player->getComponent<CInput>().canJump = true;
-					m_player->getComponent<CTransform>().velocity.y = 0.0f;
+					m_player.getComponent<CInput>().canJump = true;
+					m_player.getComponent<CTransform>().velocity.y = 0.0f;
 				}
 			}
 		}
@@ -234,7 +234,7 @@ void SceneBase::sCollision()
 		if (playerVelocity.y != 0)
 		{
 			playerState = "P_JUMP";
-			m_player->getComponent<CInput>().canJump = false;
+			m_player.getComponent<CInput>().canJump = false;
 		}
 		else if (playerVelocity.x != 0 && playerVelocity.y == 0)
 		{
@@ -252,10 +252,10 @@ void SceneBase::sCollision()
 		{
 			Vec2 overlap = Physics::GetOverlap(bullet, tile);
 			Vec2 prevOverlap = Physics::GetPreviousOverlap(bullet, tile);
-			auto& bulletVelo = bullet->getComponent<CTransform>().velocity;
-			auto& bulletPos = bullet->getComponent<CTransform>().pos;
-			auto& bulletPrevPos = bullet->getComponent<CTransform>().prevPos;
-			auto& tilePos = tile->getComponent<CTransform>().pos;
+			auto& bulletVelo = bullet.getComponent<CTransform>().velocity;
+			auto& bulletPos = bullet.getComponent<CTransform>().pos;
+			auto& bulletPrevPos = bullet.getComponent<CTransform>().prevPos;
+			auto& tilePos = tile.getComponent<CTransform>().pos;
 
 			if (overlap.x > 0 && overlap.y > 0)
 			{
@@ -273,7 +273,7 @@ void SceneBase::sCollision()
 						bulletPrevPos.x += overlap.x;
 					}
 					// simulate friction
-					bullet->getComponent<CTransform>().velocity.x = -bullet->getComponent<CTransform>().velocity.x * 0.9f;
+					bullet.getComponent<CTransform>().velocity.x = -bullet.getComponent<CTransform>().velocity.x * 0.9f;
 
 				}
 
@@ -282,15 +282,15 @@ void SceneBase::sCollision()
 					if (bulletPrevPos.y > tilePos.y)
 					{
 						bulletPos.y += overlap.y;
-						bullet->getComponent<CTransform>().velocity.y = 0.0f;
+						bullet.getComponent<CTransform>().velocity.y = 0.0f;
 					}
 					else if (bulletPrevPos.y < tilePos.y)
 					{
 						bulletPos.y -= overlap.y;
-						bullet->getComponent<CTransform>().velocity.y = -bullet->getComponent<CTransform>().velocity.y * 0.5f;
+						bullet.getComponent<CTransform>().velocity.y = -bullet.getComponent<CTransform>().velocity.y * 0.5f;
 					}
 					// simulate friction
-					bullet->getComponent<CTransform>().velocity.x = bullet->getComponent<CTransform>().velocity.x * 0.75f;
+					bullet.getComponent<CTransform>().velocity.x = bullet.getComponent<CTransform>().velocity.x * 0.75f;
 
 				}
 			}
@@ -315,11 +315,11 @@ void SceneBase::sRender()
 
 		for (auto& e : m_entityManager.getEntities())
 		{
-			if (e->hasComponent<CAnimation>())
+			if (e.hasComponent<CAnimation>())
 			{
-				auto& pos = e->getComponent<CTransform>().pos;
-				auto& scale = e->getComponent<CTransform>().scale;
-				auto& sprite = e->getComponent<CAnimation>().animation.getSprite();
+				auto& pos = e.getComponent<CTransform>().pos;
+				auto& scale = e.getComponent<CTransform>().scale;
+				auto& sprite = e.getComponent<CAnimation>().animation.getSprite();
 				sprite.setPosition(pos.x, pos.y);
 				sprite.setScale(scale.x, scale.y);
 				m_game->window().draw(sprite);
@@ -354,10 +354,10 @@ void SceneBase::sRender()
 	{
 		for (auto e : m_entityManager.getEntities())
 		{
-			if (e->hasComponent<CBoundingBox>())
+			if (e.hasComponent<CBoundingBox>())
 			{
-				auto& box = e->getComponent<CBoundingBox>();
-				auto& transform = e->getComponent<CTransform>();
+				auto& box = e.getComponent<CBoundingBox>();
+				auto& transform = e.getComponent<CTransform>();
 				sf::RectangleShape rect;
 				rect.setSize(sf::Vector2f(box.size.x, box.size.y));
 				rect.setOrigin(sf::Vector2f(box.halfSize.x, box.halfSize.y));
@@ -387,78 +387,73 @@ void SceneBase::sDoAction(const Action& action)
 		// player actions
 		else if (action.name() == "JUMP") 
 		{
-			m_player->getComponent<CInput>().up = true;
+			m_player.getComponent<CInput>().up = true;
 		}
 		else if (action.name() == "LEFT")
 		{
-			m_player->getComponent<CInput>().left = true;
+			m_player.getComponent<CInput>().left = true;
 		}
 		else if (action.name() == "RIGHT")
 		{
-			m_player->getComponent<CInput>().right = true;
+			m_player.getComponent<CInput>().right = true;
 		}
 		else if (action.name() == "DOWN")
 		{
-			m_player->getComponent<CInput>().down = true;
+			m_player.getComponent<CInput>().down = true;
 		}
 	}
 	else if (action.type() == "END")
 	{
 		if (action.name() == "JUMP")
 		{
-			m_player->getComponent<CInput>().up = false;
+			m_player.getComponent<CInput>().up = false;
 		}
 		else if (action.name() == "LEFT")
 		{
-			m_player->getComponent<CInput>().left = false;
+			m_player.getComponent<CInput>().left = false;
 		}
 		else if (action.name() == "RIGHT")
 		{
-			m_player->getComponent<CInput>().right = false;
+			m_player.getComponent<CInput>().right = false;
 		}
 		else if (action.name() == "DOWN")
 		{
-			m_player->getComponent<CInput>().down = false;
+			m_player.getComponent<CInput>().down = false;
 		}
 	}
 }
 
-Vec2 SceneBase::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
+Vec2 SceneBase::gridToMidPixel(float gridX, float gridY, Entity entity)
 {
-	float x = (gridX * m_gridSize.x) + (entity->getComponent<CAnimation>().animation.getSize().x / 2);
-	float y = m_game->getWinHeight() - (gridY * m_gridSize.y) - (entity->getComponent<CAnimation>().animation.getSize().y / 2);
+	float x = (gridX * m_gridSize.x) + (entity.getComponent<CAnimation>().animation.getSize().x / 2);
+	float y = m_game->getWinHeight() - (gridY * m_gridSize.y) - (entity.getComponent<CAnimation>().animation.getSize().y / 2);
 	return Vec2(x, y);
 }
 
-void SceneBase::spawnBullet(std::shared_ptr<Entity> entity)
+void SceneBase::spawnBullet(Entity entity)
 {
-	// bullet needs to spawn with correct velocity
-	//		if entity scale is (-) then, it is facing right
-	//		else left	
-	// bullet will have gravity component
-	
 	// add components
 	auto bullet = m_entityManager.addEntity("Bullet");
-	bullet->addComponent<CTransform>();
-	bullet->addComponent<CGravity>(m_playerConfig.GRAVITY);
-	bullet->addComponent<CAnimation>(
-		m_game->getAssetManager().getAnimation("Ball"), false
+	bullet.addComponent<CTransform>();
+	bullet.addComponent<CGravity>(m_playerConfig.GRAVITY);
+	bullet.addComponent<CAnimation>(
+		m_game->getAssetManager().getAnimation(m_playerConfig.SHOOT_ANIM), false
 	);
-	bullet->addComponent<CBoundingBox>(
-		m_game->getAssetManager().getAnimation("Ball").getSize()
+	bullet.addComponent<CBoundingBox>(
+		bullet.getComponent<CAnimation>().animation.getSize()
 	);
 
 	// set components
-	bullet->getComponent<CTransform>().pos = entity->getComponent<CTransform>().pos;
-	bullet->getComponent<CTransform>().prevPos = bullet->getComponent<CTransform>().pos;
+	bullet.getComponent<CTransform>().pos = entity.getComponent<CTransform>().pos;
+	bullet.getComponent<CTransform>().prevPos = bullet.getComponent<CTransform>().pos;
 	
-	if (entity->getComponent<CTransform>().scale.x < 0)
+	if (entity.getComponent<CTransform>().scale.x < 0)
 	{
-		bullet->getComponent<CTransform>().velocity = { 10.0f, 10.0f };
+		bullet.getComponent<CTransform>().velocity = { 10.0f, 10.0f };
 	}
 	else
 	{
-		bullet->getComponent<CTransform>().velocity = { -10.0f, 10.0f };
+		bullet.getComponent<CTransform>().velocity = { -10.0f, 10.0f };
 	}
 }
 

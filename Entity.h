@@ -1,64 +1,31 @@
 #pragma once
 #include "Components.h"
-
-#include <tuple>
+#include "EntityMemoryPool.h"
 #include <string>
 
-class EntityManager;
 
-typedef std::tuple<
-	CTransform,
-	CLifespan,
-	CInput,
-	CBoundingBox,
-	CAnimation,
-	CGravity,
-	CState
-> ComponentTuple;
+class EntityManager;
 
 class Entity
 {
 	friend class EntityManager;
+	friend class EntityMemoryPool;
 
-	bool			m_alive		= true;
-	std::string		m_tag		= "default";
 	size_t			m_id		= 0;
-	ComponentTuple	m_components;
-
-	Entity(const std::string& tag, const size_t id);
+	Entity(const size_t id);
 
 public:
-	void					destroy();
-	const	size_t			id()		const;
-	const	std::string&	tag()		const;
-	bool					isAlive()	const;
-
 	// templated functions for diff component types
-	template<typename T>
-	T& getComponent()
-	{
-		return std::get<T>(m_components);
-	}
+	Entity();
+	bool isAlive() const;
+	const std::string& tag() const;
+	const size_t id() const;
+	void destroy();
 
-	template<typename T>
-	const T& getComponent() const
-	{
-		return std::get<T>(m_components);
-	}
-
-	template <typename T>
-	bool hasComponent() const
-	{
-		return getComponent<T>().has;
-	}
-
-	// variadic template
-	// && means it is an rvalue reference
-	// ex: entity->addComponent<CTransform>(Vec2(0, 0), Vec2(5, 5));
 	template<typename T, typename...TArgs>
 	T& addComponent(TArgs&&... mArgs)
 	{
-		auto& component = getComponent<T>();
+		auto& component = EntityMemoryPool::Instance().getComponent<T>(m_id);
 		// construct component of type T with perfect forwarding
 		component = T(std::forward<TArgs>(mArgs)...);
 		component.has = true;
@@ -66,10 +33,20 @@ public:
 	}
 
 	template<typename T>
-	void removeComponent()
+	T& getComponent()
 	{
-		auto& component = getComponent<T>();
-		component = T();
-		component.has = false;
+		return EntityMemoryPool::Instance().getComponent<T>(m_id);
+	}
+
+	template<typename T>
+	bool hasComponent()
+	{
+		return EntityMemoryPool::Instance().hasComponent<T>(m_id);
+	}
+
+	template <typename T>
+	void removeComponent(size_t entityId)
+	{
+		EntityMemoryPool::Instance().removeComponent(entityId);
 	}
 };

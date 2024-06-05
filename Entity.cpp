@@ -1,18 +1,20 @@
 #include "Entity.h"
 
-Entity::Entity(const std::string& tag, const size_t id)
-	: m_tag(tag)
-	, m_id(id)
+Entity::Entity()
+{}
+
+Entity::Entity(const size_t id)
+	: m_id(id)
 {}
 
 bool Entity::isAlive() const
 {
-	return m_alive;
+	return EntityMemoryPool::Instance().isAlive(m_id);
 }
 
 const std::string& Entity::tag() const
 {
-	return m_tag;
+	return EntityMemoryPool::Instance().getTag(m_id);
 }
 
 const size_t Entity::id() const
@@ -22,5 +24,5 @@ const size_t Entity::id() const
 
 void Entity::destroy()
 {
-	m_alive = false;
+	EntityMemoryPool::Instance().destroyEntity(m_id);
 }

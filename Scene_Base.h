@@ -11,7 +11,7 @@ private:
 		std::string SHOOT_ANIM;
 	};
 
-	std::shared_ptr<Entity> m_player;
+	Entity m_player;
 	PlayerConfig			m_playerConfig;
 	EntityManager			m_entityManager;
 	std::string				m_levelPath;
@@ -29,7 +29,7 @@ private:
 	void sRender() override;
 	void sDoAction(const Action& action) override;
 
-	Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
+	Vec2 gridToMidPixel(float gridX, float gridY, Entity entity);
 	void sMovement();
 	void sAnimation();
 	void sCollision();
@@ -38,8 +38,8 @@ private:
 	void drawLine(const Vec2& p1, const Vec2& p2);
 
 	void initPlayer();
-	void spawnBullet(std::shared_ptr<Entity> entity);
-	void setAnimation(std::shared_ptr<Entity> entity,
+	void spawnBullet(Entity entity);
+	void setAnimation(Entity entity,
 		const std::string& animationName, bool repeat);
 
 public:

@@ -3,27 +3,32 @@
 #include <vector>
 #include <map>
 
-typedef std::vector<std::shared_ptr<Entity>> EntityVec;
-typedef std::map<std::string, EntityVec>	 EntityMap;
+typedef std::vector<Entity> EntityVec;
+typedef std::map<std::string, EntityVec> EntityMap;
+
+class Entity;
 
 class EntityManager
 {
 private:
-	EntityVec m_entities;
-	EntityMap m_entityMap;
-	EntityVec m_entitiesToAdd;
+	//EntityVec m_entities;
+	//EntityMap m_entityMap;
+	//EntityVec m_entitiesToAdd;
 	size_t    m_totalEntities = 0;
+	std::vector<Entity>	m_entities;
+	EntityMap m_entityMap;
+	std::vector<Entity>	m_entitiesToAdd;
 
-	void removeDeadEntities(EntityVec& vec);
+	void removeDeadEntities(std::vector<Entity> vec);
 
 public:
 	EntityManager();
 
 	void update();
 
-	std::shared_ptr<Entity> addEntity(const std::string& tag);
+	Entity addEntity(const std::string& tag);
 
-	const EntityVec& getEntities();
-	const EntityVec& getEntities(const std::string& tag);
-	const std::map<std::string, EntityVec>& getEntityMap();
+	std::vector<Entity> getEntities();
+	std::vector<Entity> getEntities(const std::string& tag);
+	//const std::map<std::string, std::vector<Entity>> & getEntityMap();
 };
