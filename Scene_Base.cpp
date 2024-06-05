@@ -370,7 +370,6 @@ void SceneBase::sRender()
 			}
 		}
 	}
-
 }
 
 void SceneBase::sDoAction(const Action& action)
@@ -499,6 +498,7 @@ void SceneBase::spawnCrazyBullets(std::shared_ptr<Entity> entity)
 			bullet->getComponent<CTransform>().velocity = { -vx, vy };
 		}
 	}
+	std::cout << m_entityManager.getEntities().size() << std::endl;
 }
 
 void SceneBase::onEnd()
