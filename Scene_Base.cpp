@@ -524,6 +524,7 @@ void SceneBase::spawnCrazyBullets(Entity entity)
 			bullet.getComponent<CTransform>().velocity = { -vx, vy };
 		}
 	}
+	std::cout << m_entityManager.getEntities().size() << std::endl;
 }
 
 void SceneBase::onEnd()

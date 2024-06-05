@@ -1,7 +1,7 @@
 #include <vector>
 #include <map>
 
-#define MAX_ENTITIES 50000
+#define MAX_ENTITIES 10005
 
 typedef std::tuple<
 	std::vector<CTransform>,
@@ -65,7 +65,6 @@ public:
 		size_t index = getNextFreeIndex();
 		if (index < std::get<std::vector<CTransform>>(m_data).size())
 		{
-			std::cout << "Found empty space in vec!" << std::endl;
 			std::get<std::vector<CTransform>>(m_data)[index] = CTransform();
 			std::get<std::vector<CLifespan>>(m_data)[index] = CLifespan();
 			std::get<std::vector<CInput>>(m_data)[index] = CInput();
@@ -80,7 +79,6 @@ public:
 			m_numEntities++;
 			return index;
 		}
-		std::cout << "Found no empty space in vec!" << std::endl;
 		std::get<std::vector<CTransform>>(m_data).push_back(CTransform());
 		std::get<std::vector<CLifespan>>(m_data).push_back(CLifespan());
 		std::get<std::vector<CInput>>(m_data).push_back(CInput());
