@@ -14,12 +14,12 @@ private:
 	//EntityVec m_entities;
 	//EntityMap m_entityMap;
 	//EntityVec m_entitiesToAdd;
-	size_t    m_totalEntities = 0;
-	std::vector<Entity>	m_entities;
-	EntityMap m_entityMap;
-	std::vector<Entity>	m_entitiesToAdd;
+	size_t		m_totalEntities = 0;
+	EntityVec	m_entities;
+	EntityVec	m_entitiesToAdd;
+	EntityMap	m_entityMap;
 
-	void removeDeadEntities(std::vector<Entity> vec);
+	void removeDeadEntities(EntityVec& vec);
 
 public:
 	EntityManager();
@@ -28,7 +28,7 @@ public:
 
 	Entity addEntity(const std::string& tag);
 
-	std::vector<Entity> getEntities();
-	std::vector<Entity> getEntities(const std::string& tag);
-	//const std::map<std::string, std::vector<Entity>> & getEntityMap();
+	EntityVec&			getEntities();
+	EntityVec&			getEntities(const std::string& tag);
+	const EntityMap&	getEntityMap();
 };

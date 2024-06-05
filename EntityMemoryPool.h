@@ -1,7 +1,7 @@
 #include <vector>
 #include <map>
 
-#define MAX_ENTITIES 100
+#define MAX_ENTITIES 50000
 
 typedef std::tuple<
 	std::vector<CTransform>,
@@ -63,16 +63,24 @@ public:
 	size_t addEntity(const std::string& tag)
 	{
 		size_t index = getNextFreeIndex();
-		std::cout << "Found next free index: " << index << std::endl;
-		// set all vectors[index] = 0
-		std::cout << "Size of vector is: " << std::get<std::vector<CTransform>>(m_data).size() << std::endl;
-		//std::get<std::vector<CTransform>>(m_data)[index] = CTransform();
-		//std::get<std::vector<CLifespan>>(m_data)[index] = CLifespan();
-		//std::get<std::vector<CInput>>(m_data)[index] = CInput();
-		//std::get<std::vector<CBoundingBox>>(m_data)[index] = CBoundingBox();
-		//std::get<std::vector<CAnimation>>(m_data)[index] = CAnimation();
-		//std::get<std::vector<CGravity>>(m_data)[index] = CGravity();
-		//std::get<std::vector<CState>>(m_data)[index] = CState();
+		if (index < std::get<std::vector<CTransform>>(m_data).size())
+		{
+			std::cout << "Found empty space in vec!" << std::endl;
+			std::get<std::vector<CTransform>>(m_data)[index] = CTransform();
+			std::get<std::vector<CLifespan>>(m_data)[index] = CLifespan();
+			std::get<std::vector<CInput>>(m_data)[index] = CInput();
+			std::get<std::vector<CBoundingBox>>(m_data)[index] = CBoundingBox();
+			std::get<std::vector<CAnimation>>(m_data)[index] = CAnimation();
+			std::get<std::vector<CGravity>>(m_data)[index] = CGravity();
+			std::get<std::vector<CState>>(m_data)[index] = CState();
+		
+			m_tags[index] = tag;
+			m_active[index] = true;
+
+			m_numEntities++;
+			return index;
+		}
+		std::cout << "Found no empty space in vec!" << std::endl;
 		std::get<std::vector<CTransform>>(m_data).push_back(CTransform());
 		std::get<std::vector<CLifespan>>(m_data).push_back(CLifespan());
 		std::get<std::vector<CInput>>(m_data).push_back(CInput());
@@ -81,7 +89,6 @@ public:
 		std::get<std::vector<CGravity>>(m_data).push_back(CGravity());
 		std::get<std::vector<CState>>(m_data).push_back(CState());
 
-		// set tag[index], active[index] = defaults
 		m_tags.push_back(tag);
 		m_active.push_back(true);
 		
@@ -96,6 +103,7 @@ public:
 
 	void destroyEntity(size_t entityId)
 	{
+		m_numEntities--;
 		m_active[entityId] = false;
 	}
 

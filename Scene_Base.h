@@ -39,6 +39,7 @@ private:
 
 	void initPlayer();
 	void spawnBullet(Entity entity);
+	void spawnCrazyBullets(Entity entity);
 	void setAnimation(Entity entity,
 		const std::string& animationName, bool repeat);
 
