@@ -96,15 +96,16 @@ void SceneBase::sAnimation()
 {
 	// only state changes of player are handled
 	const auto& playerState = m_player->getComponent<CState>().state;
-	if (playerState == "P_IDLE" && m_player->getComponent<CAnimation>().animation.getName() != "P_IDLE")
+	auto& playAnimName = m_player->getComponent<CAnimation>().animation.getName();
+	if (playerState == "P_IDLE" && playAnimName != "P_IDLE")
 	{
 		m_player->addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_IDLE"), false);
 	}
-	else if (playerState == "P_RUN" && m_player->getComponent<CAnimation>().animation.getName() != "P_RUN")
+	else if (playerState == "P_RUN" && playAnimName != "P_RUN")
 	{
 		m_player->addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_RUN"), false);
 	}
-	else if (playerState == "P_JUMP" && m_player->getComponent<CAnimation>().animation.getName() != "P_JUMP")
+	else if (playerState == "P_JUMP" && playAnimName != "P_JUMP")
 	{
 		m_player->addComponent<CAnimation>(m_game->getAssetManager().getAnimation("P_JUMP"), false);
 	}
